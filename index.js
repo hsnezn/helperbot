@@ -1,4 +1,8 @@
 require('dotenv').config()
+const { ReadableStream, WritableStream, TransformStream } = require('web-streams-polyfill/ponyfill/es2018')
+if (typeof global.ReadableStream === 'undefined') global.ReadableStream = ReadableStream
+if (typeof global.WritableStream === 'undefined') global.WritableStream = WritableStream
+if (typeof global.TransformStream === 'undefined') global.TransformStream = TransformStream
 const { Telegraf } = require('telegraf')
 const { Client } = require('discord.js')
 const { fetch } = require('undici')
@@ -27,6 +31,12 @@ if (!hasEnv) {
 
 const discord = new Client({ intents: [] })
 const tg = new Telegraf(TELEGRAM_BOT_TOKEN)
+process.on('unhandledRejection', (err) => {
+  console.error('[unhandledRejection]', err?.message || err)
+})
+process.on('uncaughtException', (err) => {
+  console.error('[uncaughtException]', err?.message || err)
+})
 
 async function sendBufferToDiscord(buffer, filename, content) {
   try {
@@ -247,7 +257,15 @@ discord.once('ready', async () => {
   tg.on('video', forwardVideo)
   tg.on('audio', forwardAudio)
   tg.on('voice', forwardVoice)
-  tg.launch()
+  try {
+    await tg.telegram.deleteWebhook({ dropPendingUpdates: true })
+  } catch (err) {
+    console.warn('[telegram] deleteWebhook warning:', err?.message || err)
+  }
+  tg.launch({ dropPendingUpdates: true }).catch((err) => {
+    console.error('[telegram] launch error:', err?.message || err)
+    process.exit(1)
+  })
   console.log('[telegram] Bot is up and listening for files.')
 })
 
