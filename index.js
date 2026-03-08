@@ -5,7 +5,6 @@ if (typeof global.WritableStream === 'undefined') global.WritableStream = Writab
 if (typeof global.TransformStream === 'undefined') global.TransformStream = TransformStream
 const { Telegraf } = require('telegraf')
 const { Client } = require('discord.js')
-const { fetch } = require('undici')
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN
 const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN
